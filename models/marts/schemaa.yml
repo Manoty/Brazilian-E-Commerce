@@ -1,0 +1,110 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: Customer dimension enriched with geolocation centroids per zip code
+    columns:
+      - name: customer_id
+        description: Primary key — unique per order
+        tests:
+          - not_null
+      - name: customer_unique_id
+        description: Unique per actual customer across multiple orders
+        tests:
+          - not_null
+      - name: state
+        description: Brazilian state abbreviation
+        tests:
+          - not_null
+
+  - name: dim_products
+    description: Product dimension with English category translations
+    columns:
+      - name: product_id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: category_name_english
+        description: English translation of Portuguese category, defaults to unknown
+
+  - name: dim_sellers
+    description: Seller dimension enriched with geolocation centroids
+    columns:
+      - name: seller_id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_orders
+    description: Order level fact table with delivery metrics, payment aggregates and review scores
+    columns:
+      - name: order_id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: is_late_delivery
+        description: True if delivered_at is after estimated_delivery_at
+        tests:
+          - not_null
+      - name: days_to_deliver
+        description: Actual days from order to delivery
+      - name: total_payment_value
+        description: Sum of all payments across payment methods for this order
+
+  - name: fct_order_items
+    description: Item level fact table joined with order, product and seller context
+    columns:
+      - name: order_id
+        description: Foreign key to fct_orders
+        tests:
+          - not_null
+      - name: order_item_id
+        description: Sequential item number within an order
+        tests:
+          - not_null
+      - name: total_item_value
+        description: price + freight_value
+      - name: freight_pct_of_price
+        description: Freight cost as a percentage of item price
+
+  - name: mart_revenue_analysis
+    description: Monthly revenue trends for delivered orders
+    columns:
+      - name: order_month
+        description: Truncated to first day of month
+        tests:
+          - unique
+          - not_null
+      - name: total_revenue
+        description: Sum of payment values for delivered orders in the month
+
+  - name: mart_delivery_performance
+    description: Late delivery rates aggregated by customer state and seller state
+    columns:
+      - name: late_delivery_rate_pct
+        description: Percentage of orders delivered late in this state combination
+
+  - name: mart_customer_ltv
+    description: Customer lifetime value with spend segmentation
+    columns:
+      - name: customer_id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: ltv_segment
+        description: high_value above 1000 BRL, mid_value above 300 BRL, low_value below
+
+  - name: mart_seller_performance
+    description: Seller performance metrics with revenue tiering
+    columns:
+      - name: seller_id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: seller_tier
+        description: top_seller above 50000 BRL, mid_seller above 10000 BRL, low_seller below
