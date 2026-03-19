@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: olist_raw
+    description: Raw Olist e-commerce data loaded from CSVs
+    tables:
+      - name: orders
+      - name: order_items
+      - name: customers
+      - name: products
+      - name: payments
+      - name: sellers
+      - name: reviews
+      - name: geolocation
+      - name: product_category_name_translation
